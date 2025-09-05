@@ -19,7 +19,7 @@
             <label>Lunar Regolith Simulant:</label>
             <select id="lrs-dropdown"></select>
         </div>
-
+        
         <div>
             <label>Type:</label>
             <select id="type-filter" multiple></select>
@@ -33,6 +33,13 @@
             <select id="mineral-filter" multiple></select>
         </div>
 
+        <div>
+            <label>Chemical:</label>
+            <select id="chemical-filter" multiple></select>
+        </div>
+        
+        <button id="clear-filters" style="margin:10px;padding:5px 10px;">Clear All Filters</button>
+
         <h4>Mineral Composition</h4>
         <canvas id="mineral-chart"></canvas>
 
@@ -44,6 +51,18 @@
     </div>
 
     <div id="map"></div>
+
+    <button id="home-button" style="
+    position: absolute;
+    top: 10px;
+    left: 1000px;
+    z-index: 1000;
+    padding: 5px 10px;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    ">Home</button>
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
