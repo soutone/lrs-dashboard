@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LRS Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <!-- Leaflet.markercluster CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+</head>
+<body>
+    <div id="sidebar">
+        <h3>LRS Dashboard</h3>
+
+        <div>
+            <label>Lunar Regolith Simulant:</label>
+            <select id="lrs-dropdown"></select>
+        </div>
+
+        <div>
+            <label>Type:</label>
+            <select id="type-filter" multiple></select>
+        </div>
+        <div>
+            <label>Country:</label>
+            <select id="country-filter" multiple></select>
+        </div>
+        <div>
+            <label>Mineral:</label>
+            <select id="mineral-filter" multiple></select>
+        </div>
+
+        <h4>Mineral Composition</h4>
+        <canvas id="mineral-chart"></canvas>
+
+        <h4>Chemical Composition</h4>
+        <canvas id="chemical-chart"></canvas>
+
+        <h4>References</h4>
+        <div id="references-panel"></div>
+    </div>
+
+    <div id="map"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <!-- Leaflet.markercluster JS -->
+    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script src="app.js"></script>
+</body>
+</html>
