@@ -1,370 +1,378 @@
-// document.addEventListener('DOMContentLoaded', () => {
-
-//     let map = L.map('map').setView([46.6, 2.5], 3);
-//     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19 }).addTo(map);
-
-//     let markers = L.markerClusterGroup();
-//     map.addLayer(markers);
-
-//     let simulants = [], sites = [], minerals = [], chemicals = [], references = [];
-
-//     let mineralChart = null;
-//     let chemicalChart = null;
-
-//     Promise.all([
-//         fetch('data/simulant.json').then(r=>r.json()),
-//         fetch('data/site.json').then(r=>r.json()),
-//         fetch('data/composition.json').then(r=>r.json()),
-//         fetch('data/chemical_composition.json').then(r=>r.json()),
-//         fetch('data/references.json').then(r=>r.json())
-//     ]).then(([simData, siteData, minData, chemData, refData])=>{
-//         simulants = simData;
-//         sites = siteData;
-//         minerals = minData;
-//         chemicals = chemData;
-//         references = refData;
-
-//         populateFilters();
-//         updateMap();
-//     });
-
-//     function populateFilters(){
-//         const typeFilter = document.getElementById('type-filter');
-//         const countryFilter = document.getElementById('country-filter');
-//         const mineralFilter = document.getElementById('mineral-filter');
-//         const lrsDropdown = document.getElementById('lrs-dropdown');
-
-//         simulants.forEach(s=>{
-//             let opt = document.createElement('option'); opt.value=s.simulant_id; opt.text=s.name; lrsDropdown.appendChild(opt);
-//         });
-
-//         [...new Set(simulants.map(s=>s.type))].forEach(t=>{
-//             let opt = document.createElement('option'); opt.value=t; opt.text=t; typeFilter.appendChild(opt);
-//         });
-//         [...new Set(simulants.map(s=>s.country_code))].forEach(c=>{
-//             let opt = document.createElement('option'); opt.value=c; opt.text=c; countryFilter.appendChild(opt);
-//         });
-//         [...new Set(minerals.map(m=>m.component_name))].forEach(m=>{
-//             let opt = document.createElement('option'); opt.value=m; opt.text=m; mineralFilter.appendChild(opt);
-//         });
-
-//         typeFilter.addEventListener('change', updateMap);
-//         countryFilter.addEventListener('change', updateMap);
-//         mineralFilter.addEventListener('change', updateMap);
-
-//         lrsDropdown.addEventListener('change', () => {
-//             const selected = lrsDropdown.value;
-//             if(selected) showInfo(selected, true);
-//         });
-//     }
-
-//     function updateMap(){
-//         markers.clearLayers();
-
-//         const typeFilter = Array.from(document.getElementById('type-filter').selectedOptions).map(o=>o.value);
-//         const countryFilter = Array.from(document.getElementById('country-filter').selectedOptions).map(o=>o.value);
-//         const mineralFilter = Array.from(document.getElementById('mineral-filter').selectedOptions).map(o=>o.value);
-
-//         let filtered = simulants.filter(s=>{
-//             let keep=true;
-//             if(typeFilter.length) keep = keep && typeFilter.includes(s.type);
-//             if(countryFilter.length) keep = keep && countryFilter.includes(s.country_code);
-//             if(mineralFilter.length){
-//                 let sMinerals = minerals.filter(m=>m.simulant_id===s.simulant_id).map(m=>m.component_name);
-//                 keep = keep && mineralFilter.some(m=>sMinerals.includes(m));
-//             }
-//             return keep;
-//         });
-
-//         filtered.forEach(s=>{
-//             let siteRows = sites.filter(site=>site.simulant_id===s.simulant_id);
-//             siteRows.forEach(site=>{
-//                 let lat = site.lat || 0;
-//                 let lon = site.lon || 0;
-//                 let marker = L.marker([lat, lon]);
-//                 marker.bindPopup(`${s.name} (${s.type})`);
-//                 marker.on('click', () => showInfo(s.simulant_id, false, [lat, lon]));
-//                 markers.addLayer(marker);
-//             });
-//         });
-//     }
-
-//     function showInfo(simulant_id, centerMap=false, coords=null){
-//         const s = simulants.find(x=>x.simulant_id===simulant_id);
-//         if(!s) return;
-
-//         document.getElementById('lrs-dropdown').value = simulant_id;
-
-//         // Center map if requested
-//         if(centerMap){
-//             let site = sites.find(site=>site.simulant_id===simulant_id);
-//             if(site && site.lat && site.lon){
-//                 map.flyTo([site.lat, site.lon], 7);
-//             }
-//         }
-
-//         // ----- Mineral Chart -----
-//         let minSubset = minerals.filter(m=>m.simulant_id===simulant_id);
-//         let mineralCtx = document.getElementById('mineral-chart').getContext('2d');
-//         if(mineralChart) mineralChart.destroy();
-//         mineralChart = new Chart(mineralCtx, {
-//             type: 'bar',
-//             data: {
-//                 labels: minSubset.map(m=>m.component_name),
-//                 datasets: [{
-//                     label: 'Mineral %',
-//                     data: minSubset.map(m=>m.value_pct),
-//                     backgroundColor: 'rgba(75, 192, 192, 0.7)'
-//                 }]
-//             },
-//             options: {
-//                 indexAxis: 'y',
-//                 responsive: true,
-//                 plugins: { legend: { display: false } },
-//                 scales: { x: { beginAtZero: true, max: 100 } }
-//             }
-//         });
-
-//         // ----- Chemical Chart -----
-//         let chemSubset = chemicals.filter(c=>c.simulant_id===simulant_id && c.component_type==='oxide');
-//         let chemicalCtx = document.getElementById('chemical-chart').getContext('2d');
-//         if(chemicalChart) chemicalChart.destroy();
-//         if(chemSubset.length===0){
-//             chemicalChart = new Chart(chemicalCtx, {
-//                 type: 'pie',
-//                 data: {
-//                     labels: ['No Data'],
-//                     datasets: [{ data:[1], backgroundColor:['#ccc'] }]
-//                 },
-//                 options: { plugins: { legend:{ display:false } } }
-//             });
-//         } else {
-//             chemicalChart = new Chart(chemicalCtx, {
-//                 type: 'pie',
-//                 data: {
-//                     labels: chemSubset.map(c=>c.component_name),
-//                     datasets: [{
-//                         data: chemSubset.map(c=>c.value_wt_pct),
-//                         backgroundColor: [
-//                             '#FF6384','#36A2EB','#FFCE56','#4BC0C0','#9966FF','#FF9F40'
-//                         ]
-//                     }]
-//                 },
-//                 options: { responsive: true }
-//             });
-//         }
-
-//         // ----- References -----
-//         let refPanel = document.getElementById('references-panel');
-//         refPanel.innerHTML = '';
-//         let refSubset = references.filter(r=>r.simulant_id===simulant_id);
-//         if(refSubset.length===0){
-//             refPanel.textContent = 'No references available';
-//         } else {
-//             refSubset.forEach(r=>{
-//                 let div = document.createElement('div');
-//                 div.textContent = r.reference_text;
-//                 refPanel.appendChild(div);
-//             });
-//         }
-//     }
-
-// });
 document.addEventListener('DOMContentLoaded', () => {
 
     let map = L.map('map').setView([46.6, 2.5], 3);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19 }).addTo(map);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+    // --- Custom Moon Icon (using default marker as fallback) ---
+    const moonIcon = L.icon({
+        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+    });
 
     let markers = L.markerClusterGroup();
     map.addLayer(markers);
+
+    let countryLayer = null;
+    let countryGeoJson = null;
 
     let simulants = [], sites = [], minerals = [], chemicals = [], references = [];
     let mineralChart = null;
     let chemicalChart = null;
     let markerMap = {}; // Map simulant_id -> marker
 
+    // EU countries iso_a3 codes (defined globally)
+    const euCountries = ["AUT", "BEL", "BGR", "HRV", "CYP", "CZE", "DNK", "EST", "FIN", "FRA",
+        "DEU", "GRC", "HUN", "IRL", "ITA", "LVA", "LTU", "LUX", "MLT", "NLD",
+        "POL", "PRT", "ROU", "SVK", "SVN", "ESP", "SWE"];
+
+    // Mapping between simulant country_code values and GeoJSON iso_a3 codes
+    const countryMap = {
+        "USA": "USA",
+        "UK": "GBR",
+        "EU": "EU",
+        "France": "FRA",
+        "Germany": "DEU",
+        "Italy": "ITA",
+        "China": "CHN",
+        "Australia": "AUS",
+        "Norway": "NOR",
+        "Canada": "CAN",
+        "Japan": "JPN",
+        "South Korea": "KOR",
+        "India": "IND",
+        "Turkey": "TUR",
+        "Thailand": "THA"
+    };
+
+    // Load all data files
     Promise.all([
-        fetch('data/simulant.json').then(r=>r.json()),
-        fetch('data/site.json').then(r=>r.json()),
-        fetch('data/composition.json').then(r=>r.json()),
-        fetch('data/chemical_composition.json').then(r=>r.json()),
-        fetch('data/references.json').then(r=>r.json())
-    ]).then(([simData, siteData, minData, chemData, refData])=>{
+        fetch('./data/simulant.json').then(r => r.json()),
+        fetch('./data/site.json').then(r => r.json()),
+        fetch('./data/composition.json').then(r => r.json()),
+        fetch('./data/chemical_composition.json').then(r => r.json()),
+        fetch('./data/references.json').then(r => r.json()),
+        fetch('./data/countries.geojson').then(r => r.json())
+    ]).then(([simData, siteData, minData, chemData, refData, geoData]) => {
         simulants = simData;
         sites = siteData;
         minerals = minData;
         chemicals = chemData;
         references = refData;
+        countryGeoJson = geoData;
+
+        console.log('Data loaded successfully:', {
+            simulants: simulants.length,
+            sites: sites.length,
+            minerals: minerals.length,
+            chemicals: chemicals.length,
+            references: references.length
+        });
 
         populateFilters();
         updateMap();
+    }).catch(error => {
+        console.error('Error loading data:', error);
+        alert('Failed to load data. Please check the console for details.');
     });
 
-    function populateFilters(){
+    function populateFilters() {
         const typeFilter = document.getElementById('type-filter');
         const countryFilter = document.getElementById('country-filter');
         const mineralFilter = document.getElementById('mineral-filter');
         const lrsDropdown = document.getElementById('lrs-dropdown');
+        const chemicalFilter = document.getElementById('chemical-filter');
 
-        simulants.forEach(s=>{
+        simulants.forEach(s => {
             let opt = document.createElement('option');
             opt.value = s.simulant_id;
             opt.text = s.name;
             lrsDropdown.appendChild(opt);
         });
 
-        [...new Set(simulants.map(s=>s.type))].forEach(t=>{
-            let opt = document.createElement('option'); opt.value=t; opt.text=t; typeFilter.appendChild(opt);
+        [...new Set(chemicals.map(c => c.component_name))].forEach(c => {
+            if (!c) return;
+            let opt = document.createElement('option');
+            opt.value = c;
+            opt.text = c;
+            chemicalFilter.appendChild(opt);
         });
-        [...new Set(simulants.map(s=>s.country_code))].forEach(c=>{
-            let opt = document.createElement('option'); opt.value=c; opt.text=c; countryFilter.appendChild(opt);
+
+        [...new Set(simulants.map(s => s.type))].forEach(t => {
+            let opt = document.createElement('option');
+            opt.value = t;
+            opt.text = t;
+            typeFilter.appendChild(opt);
         });
-        [...new Set(minerals.map(m=>m.component_name))].forEach(m=>{
-            let opt = document.createElement('option'); opt.value=m; opt.text=m; mineralFilter.appendChild(opt);
+
+        [...new Set(simulants.map(s => s.country_code))].forEach(c => {
+            let opt = document.createElement('option');
+            opt.value = c;
+            opt.text = c;
+            countryFilter.appendChild(opt);
+        });
+
+        [...new Set(minerals.map(m => m.component_name))].forEach(m => {
+            let opt = document.createElement('option');
+            opt.value = m;
+            opt.text = m;
+            mineralFilter.appendChild(opt);
         });
 
         typeFilter.addEventListener('change', updateMap);
         countryFilter.addEventListener('change', updateMap);
-        mineralFilter.addEventListener('change', updateMap);
+        mineralFilter.addEventListener('change', updateCharts);
+        chemicalFilter.addEventListener('change', updateCharts);
 
         lrsDropdown.addEventListener('change', () => {
             const selected = lrsDropdown.value;
-            if(selected) showInfo(selected, true, true); // center + open popup
+            if (selected) showInfo(selected, true, true);
         });
     }
 
-    function updateMap(){
+    function highlightCountry(countryCode) {
+        if (!countryGeoJson || !countryCode) return;
+
+        if (countryLayer) map.removeLayer(countryLayer);
+
+        let featuresToHighlight = [];
+
+        if (countryCode === "EU") {
+            featuresToHighlight = countryGeoJson.features.filter(f =>
+                euCountries.includes((f.properties.iso_a3 || f.properties.ISO_A3))
+            );
+        } else {
+            const code = countryMap[countryCode] || countryCode;
+            const feat = countryGeoJson.features.find(f =>
+                (f.properties.iso_a3 || f.properties.ISO_A3) === code ||
+                (f.properties.iso_a2 || f.properties.ISO_A2) === code
+            );
+            if (feat) featuresToHighlight.push(feat);
+        }
+
+        if (featuresToHighlight.length > 0) {
+            countryLayer = L.geoJSON(featuresToHighlight, {
+                style: { color: "#d33", weight: 2, fillColor: "#f39c12", fillOpacity: 0.15 }
+            }).addTo(map);
+            countryLayer.bringToFront();
+            map.fitBounds(countryLayer.getBounds(), { padding: [20, 20] });
+        }
+    }
+
+    function updateCharts() {
+        const mineralFilterValues = Array.from(document.getElementById('mineral-filter').selectedOptions).map(o => o.value);
+        const chemicalFilterValues = Array.from(document.getElementById('chemical-filter').selectedOptions).map(o => o.value);
+        const minCtx = document.getElementById('mineral-chart').getContext('2d');
+        const chemCtx = document.getElementById('chemical-chart').getContext('2d');
+
+        // --- Mineral chart ---
+        if (mineralChart) mineralChart.destroy();
+        if (mineralFilterValues.length > 0) {
+            const histData = simulants.map(s => {
+                const m = minerals.find(m => m.simulant_id === s.simulant_id && mineralFilterValues.includes(m.component_name));
+                return m ? { name: s.name, value: m.value_pct } : null;
+            }).filter(Boolean);
+
+            mineralChart = new Chart(minCtx, {
+                type: 'bar',
+                data: {
+                    labels: histData.map(d => d.name),
+                    datasets: [{
+                        label: 'Mineral %',
+                        data: histData.map(d => d.value),
+                        backgroundColor: 'rgba(75,192,192,0.7)'
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { x: { beginAtZero: true, max: 100 }, y: { ticks: { autoSkip: false } } }
+                }
+            });
+        } else {
+            minCtx.clearRect(0, 0, minCtx.canvas.width, minCtx.canvas.height);
+        }
+
+        // --- Chemical chart ---
+        if (chemicalChart) chemicalChart.destroy();
+        if (chemicalFilterValues.length > 0) {
+            const chemData = simulants.map(s => {
+                const c = chemicals.filter(c => c.simulant_id === s.simulant_id && chemicalFilterValues.includes(c.component_name));
+                const total = c.reduce((sum, item) => sum + item.value_wt_pct, 0);
+                return total > 0 ? { name: s.name, value: total } : null;
+            }).filter(Boolean);
+
+            chemicalChart = new Chart(chemCtx, {
+                type: 'bar',
+                data: {
+                    labels: chemData.map(d => d.name),
+                    datasets: [{
+                        label: 'Chemical %',
+                        data: chemData.map(d => d.value),
+                        backgroundColor: 'rgba(255,99,132,0.7)'
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { x: { beginAtZero: true, max: 100 }, y: { ticks: { autoSkip: false } } }
+                }
+            });
+        } else {
+            chemCtx.clearRect(0, 0, chemCtx.canvas.width, chemCtx.canvas.height);
+        }
+    }
+
+    function updateMap() {
         markers.clearLayers();
         markerMap = {};
 
-        const typeFilter = Array.from(document.getElementById('type-filter').selectedOptions).map(o=>o.value);
-        const countryFilter = Array.from(document.getElementById('country-filter').selectedOptions).map(o=>o.value);
-        const mineralFilter = Array.from(document.getElementById('mineral-filter').selectedOptions).map(o=>o.value);
+        const typeFilter = Array.from(document.getElementById('type-filter').selectedOptions).map(o => o.value);
+        const countryFilter = Array.from(document.getElementById('country-filter').selectedOptions).map(o => o.value);
+        const mineralFilter = Array.from(document.getElementById('mineral-filter').selectedOptions).map(o => o.value);
 
-        let filtered = simulants.filter(s=>{
-            let keep=true;
-            if(typeFilter.length) keep = keep && typeFilter.includes(s.type);
-            if(countryFilter.length) keep = keep && countryFilter.includes(s.country_code);
-            if(mineralFilter.length){
-                let sMinerals = minerals.filter(m=>m.simulant_id===s.simulant_id).map(m=>m.component_name);
-                keep = keep && mineralFilter.some(m=>sMinerals.includes(m));
+        let filtered = simulants.filter(s => {
+            let keep = true;
+            if (typeFilter.length) keep = keep && typeFilter.includes(s.type);
+            if (countryFilter.length) keep = keep && countryFilter.includes(s.country_code);
+            if (mineralFilter.length) {
+                let sMinerals = minerals.filter(m => m.simulant_id === s.simulant_id).map(m => m.component_name);
+                keep = keep && mineralFilter.some(m => sMinerals.includes(m));
             }
             return keep;
         });
 
-        filtered.forEach(s=>{
-            let siteRows = sites.filter(site=>site.simulant_id===s.simulant_id);
-            siteRows.forEach(site=>{
+        // --- Highlight country if a single country is selected ---
+        if (countryFilter.length === 1) {
+            highlightCountry(countryFilter[0]);
+        } else if (countryLayer) {
+            map.removeLayer(countryLayer);
+        }
+
+        filtered.forEach(s => {
+            let siteRows = sites.filter(site => site.simulant_id === s.simulant_id);
+            siteRows.forEach(site => {
                 let lat = site.lat || 0;
                 let lon = site.lon || 0;
 
-                let marker = L.marker([lat, lon]);
+                let marker = L.marker([lat, lon], { icon: moonIcon });
 
-                // Popup + Tooltip
                 let popupContent = `<b>${s.name}</b><br>Type: ${s.type}<br>Country: ${s.country_code}`;
                 marker.bindPopup(popupContent);
-                marker.bindTooltip(s.name, {permanent:false, direction:"top"});
+                marker.bindTooltip(s.name, { permanent: false, direction: "top" });
 
                 marker.on('click', () => showInfo(s.simulant_id, false, false));
                 markers.addLayer(marker);
 
-                markerMap[s.simulant_id] = marker; // store reference
+                markerMap[s.simulant_id] = marker;
             });
         });
     }
 
-    function showInfo(simulant_id, centerMap=false, openPopup=false){
-        const s = simulants.find(x=>x.simulant_id===simulant_id);
-        if(!s) return;
+    function showInfo(simulant_id, centerMap = false, openPopup = false) {
+        const s = simulants.find(x => x.simulant_id === simulant_id);
+        if (!s) return;
 
         document.getElementById('lrs-dropdown').value = simulant_id;
 
-        // Center and/or open popup
-        let site = sites.find(site=>site.simulant_id===simulant_id);
-        if(site && site.lat && site.lon){
-            if(centerMap) map.flyTo([site.lat, site.lon], 7);
-            if(openPopup && markerMap[simulant_id]) markerMap[simulant_id].openPopup();
+        if (countryLayer) map.removeLayer(countryLayer);
+
+        let featuresToHighlight = [];
+
+        if (s.country_code === "EU") {
+            featuresToHighlight = countryGeoJson.features.filter(f =>
+                euCountries.includes(f.properties.iso_a3 || f.properties.ISO_A3)
+            );
+        } else {
+            const code = countryMap[s.country_code] || s.country_code;
+            const feat = countryGeoJson.features.find(f =>
+                (f.properties.iso_a3 || f.properties.ISO_A3) === code ||
+                (f.properties.iso_a2 || f.properties.ISO_A2) === code
+            );
+            if (feat) featuresToHighlight.push(feat);
         }
 
-        // ----- Mineral Chart -----
-        let minSubset = minerals.filter(m=>m.simulant_id===simulant_id);
-        let mineralCtx = document.getElementById('mineral-chart').getContext('2d');
-        if(mineralChart) mineralChart.destroy();
+        if (featuresToHighlight.length > 0) {
+            countryLayer = L.geoJSON(featuresToHighlight, {
+                style: { color: "#d33", weight: 2, fillColor: "#f39c12", fillOpacity: 0.15 }
+            }).addTo(map);
+            countryLayer.bringToFront();
+            if (centerMap) map.fitBounds(countryLayer.getBounds(), { padding: [20, 20] });
+        }
+
+        const site = sites.find(site => site.simulant_id === simulant_id);
+        if (site && site.lat && site.lon) {
+            if (centerMap) setTimeout(() => map.flyTo([site.lat, site.lon], 7), 250);
+            if (openPopup && markerMap[simulant_id]) markerMap[simulant_id].openPopup();
+        }
+
+        const minSubset = minerals.filter(m => m.simulant_id === simulant_id && m.value_pct > 0)
+            .sort((a, b) => b.value_pct - a.value_pct);
+        const mineralCtx = document.getElementById('mineral-chart').getContext('2d');
+        if (mineralChart) mineralChart.destroy();
         mineralChart = new Chart(mineralCtx, {
             type: 'bar',
             data: {
-                labels: minSubset.map(m=>m.component_name),
-                datasets: [{
-                    label: 'Mineral %',
-                    data: minSubset.map(m=>m.value_pct),
-                    backgroundColor: 'rgba(75, 192, 192, 0.7)'
-                }]
+                labels: minSubset.map(m => m.component_name),
+                datasets: [{ label: 'Mineral %', data: minSubset.map(m => m.value_pct), backgroundColor: 'rgba(75,192,192,0.7)' }]
             },
-            options: {
-                indexAxis: 'y',
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { beginAtZero: true, max: 100 },
-                    y: { ticks: { autoSkip: false } }
-                }
-            }
+            options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, max: 100 }, y: { ticks: { autoSkip: false } } } }
         });
 
-        // Make histogram taller
-        // document.getElementById('mineral-chart').parentElement.style.height = "400px";
-
-        
-        // ----- Chemical Chart -----
-        let chemSubset = chemicals.filter(c=>
-            c.simulant_id===simulant_id &&
-            c.component_type==='oxide' &&
-            c.component_name.toLowerCase() !== 'sum'
+        const chemSubset = chemicals.filter(c =>
+            c.simulant_id === simulant_id && c.component_type === 'oxide' && c.component_name?.toLowerCase() !== 'sum'
         );
-        let chemicalCtx = document.getElementById('chemical-chart').getContext('2d');
-        if(chemicalChart) chemicalChart.destroy();
-        if(chemSubset.length===0){
-            chemicalChart = new Chart(chemicalCtx, {
-                type: 'pie',
-                data: {
-                    labels: ['No Data'],
-                    datasets: [{ data:[1], backgroundColor:['#ccc'] }]
-                },
-                options: { plugins: { legend:{ display:false } } }
-            });
+        const chemicalCtx = document.getElementById('chemical-chart').getContext('2d');
+        if (chemicalChart) chemicalChart.destroy();
+        if (chemSubset.length === 0) {
+            chemicalChart = new Chart(chemicalCtx, { type: 'pie', data: { labels: ['No Data'], datasets: [{ data: [1], backgroundColor: ['#ccc'] }] }, options: { plugins: { legend: { display: false } } } });
         } else {
             chemicalChart = new Chart(chemicalCtx, {
                 type: 'pie',
-                data: {
-                    labels: chemSubset.map(c=>c.component_name),
-                    datasets: [{
-                        data: chemSubset.map(c=>c.value_wt_pct),
-                        backgroundColor: [
-                            '#FF6384','#36A2EB','#FFCE56','#4BC0C0','#9966FF','#FF9F40','#C9CBCF','#E27D60'
-                        ]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { position: 'bottom' } }
-                }
+                data: { labels: chemSubset.map(c => c.component_name), datasets: [{ data: chemSubset.map(c => c.value_wt_pct), backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#C9CBCF', '#E27D60'] }] },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
             });
         }
 
-        // ----- References -----
-        let refPanel = document.getElementById('references-panel');
+        const refPanel = document.getElementById('references-panel');
         refPanel.innerHTML = '';
-        let refSubset = references.filter(r=>r.simulant_id===simulant_id);
-        if(refSubset.length===0){
-            refPanel.textContent = 'No references available';
-        } else {
-            refSubset.forEach(r=>{
-                let div = document.createElement('div');
-                div.textContent = r.reference_text;
-                refPanel.appendChild(div);
-            });
-        }
+        const refSubset = references.filter(r => r.simulant_id === simulant_id);
+        if (refSubset.length === 0) refPanel.textContent = 'No references available';
+        else refSubset.forEach(r => { const div = document.createElement('div'); div.textContent = r.reference_text; refPanel.appendChild(div) });
     }
+
+    function flyToDefault() {
+        map.flyTo([46.6, 2.5], 3, { animate: true, duration: 1.5 });
+        if (countryLayer) map.removeLayer(countryLayer);
+    }
+
+    // Clear Filters Button (single event listener)
+    const clearBtn = document.getElementById('clear-filters');
+    clearBtn.addEventListener('click', () => {
+        ['type-filter', 'country-filter', 'mineral-filter', 'chemical-filter'].forEach(id => {
+            const select = document.getElementById(id);
+            if (select) select.selectedIndex = -1;
+        });
+        const lrsDropdown = document.getElementById('lrs-dropdown');
+        if (lrsDropdown) lrsDropdown.selectedIndex = -1;
+
+        updateMap();
+        updateCharts();
+        flyToDefault();
+    });
+
+    // Home Button
+    const homeBtn = document.getElementById('home-button');
+    homeBtn.addEventListener('click', () => {
+        flyToDefault();
+    });
 
 });
