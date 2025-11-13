@@ -99,18 +99,46 @@ document.addEventListener('DOMContentLoaded', () => {
             chemicals: chemicals.length
         });
 
-        document.querySelector('.data-count').textContent =
-            `${simulants.length} simulants loaded`;
-
         hideLoading();
         populateFilters();
         updateMap();
         initializePanels();
+        updateSimulantCount();
     }).catch(error => {
         hideLoading();
         console.error('Error loading data:', error);
         alert('Failed to load data. Check console for details.');
     });
+
+    // Update simulant count dynamically
+    function updateSimulantCount() {
+        const typeFilter = Array.from(document.getElementById('type-filter').selectedOptions).map(o => o.value);
+        const countryFilter = Array.from(document.getElementById('country-filter').selectedOptions).map(o => o.value);
+        const mineralFilter = Array.from(document.getElementById('mineral-filter').selectedOptions).map(o => o.value);
+        const chemicalFilter = Array.from(document.getElementById('chemical-filter').selectedOptions).map(o => o.value);
+
+        let filtered = simulants.filter(s => {
+            let keep = true;
+            if (typeFilter.length) keep = keep && typeFilter.includes(s.type);
+            if (countryFilter.length) keep = keep && countryFilter.includes(s.country_code);
+            if (mineralFilter.length) {
+                let sMinerals = minerals.filter(m => m.simulant_id === s.simulant_id).map(m => m.component_name);
+                keep = keep && mineralFilter.some(m => sMinerals.includes(m));
+            }
+            if (chemicalFilter.length) {
+                let sChemicals = chemicals.filter(c => c.simulant_id === s.simulant_id).map(c => c.component_name);
+                keep = keep && chemicalFilter.some(c => sChemicals.includes(c));
+            }
+            return keep;
+        });
+
+        const countEl = document.getElementById('simulant-count');
+        if (filtered.length === simulants.length) {
+            countEl.textContent = `${simulants.length} simulants loaded`;
+        } else {
+            countEl.textContent = `${filtered.length} of ${simulants.length} simulants`;
+        }
+    }
 
     // Populate filters
     function populateFilters() {
@@ -155,18 +183,42 @@ document.addEventListener('DOMContentLoaded', () => {
             chemicalFilter.appendChild(opt);
         });
 
-        // Event listeners
-        typeFilter.addEventListener('change', updateMap);
-        countryFilter.addEventListener('change', updateMap);
-        mineralFilter.addEventListener('change', updateMap);
-        chemicalFilter.addEventListener('change', updateMap);
+        // Event listeners for filters with toggle behavior
+        [typeFilter, countryFilter, mineralFilter, chemicalFilter].forEach(filter => {
+            filter.addEventListener('click', (e) => {
+                if (e.target.tagName === 'OPTION') {
+                    const option = e.target;
+                    option.selected = !option.selected;
+                    e.preventDefault();
+                    updateMap();
+                    updateSimulantCount();
+
+                    // Update country panel if country filter changed
+                    if (filter === countryFilter) {
+                        updateCountryPanel();
+                    }
+                }
+            });
+        });
+
+        // Select All buttons
+        document.querySelectorAll('.select-all-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetId = btn.dataset.target;
+                const select = document.getElementById(targetId);
+                Array.from(select.options).forEach(opt => opt.selected = true);
+                updateMap();
+                updateSimulantCount();
+                if (targetId === 'country-filter') {
+                    updateCountryPanel();
+                }
+            });
+        });
 
         lrsDropdown.addEventListener('change', () => {
             const selected = lrsDropdown.value;
             if (selected) {
-                if (compareMode && !panelStates.panel1.simulantId) {
-                    showInfo(selected, 1, true, true);
-                } else if (compareMode && panelStates.panel1.simulantId && !panelStates.panel2.simulantId) {
+                if (compareMode && panelStates.panel2.open) {
                     showInfo(selected, 2, true, true);
                 } else {
                     showInfo(selected, 1, true, true);
@@ -177,11 +229,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize panel interactions
     function initializePanels() {
-        // Panel handles for drag/toggle
+        // Panel handles
         document.querySelectorAll('.panel-handle').forEach(handle => {
             handle.addEventListener('click', () => {
                 const panelNum = handle.dataset.panel;
-                const panel = document.getElementById(`info-panel-${panelNum}`);
                 togglePanel(panelNum);
             });
         });
@@ -198,20 +249,42 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('pin-panel-1').addEventListener('click', function () {
             panelStates.panel1.pinned = !panelStates.panel1.pinned;
             this.classList.toggle('active', panelStates.panel1.pinned);
+            const panel = document.getElementById('info-panel-1');
             if (panelStates.panel1.pinned) {
-                document.getElementById('info-panel-1').classList.add('pinned');
+                panel.classList.add('pinned');
             } else {
-                document.getElementById('info-panel-1').classList.remove('pinned');
+                panel.classList.remove('pinned');
             }
         });
 
         document.getElementById('pin-panel-2').addEventListener('click', function () {
             panelStates.panel2.pinned = !panelStates.panel2.pinned;
             this.classList.toggle('active', panelStates.panel2.pinned);
+            const panel = document.getElementById('info-panel-2');
             if (panelStates.panel2.pinned) {
-                document.getElementById('info-panel-2').classList.add('pinned');
+                panel.classList.add('pinned');
             } else {
-                document.getElementById('info-panel-2').classList.remove('pinned');
+                panel.classList.remove('pinned');
+            }
+        });
+
+        // Compare buttons in panels
+        document.getElementById('compare-btn-1').addEventListener('click', function () {
+            if (!panelStates.panel1.simulantId) {
+                alert('Please select a simulant first');
+                return;
+            }
+            compareMode = !compareMode;
+            this.classList.toggle('active', compareMode);
+
+            if (compareMode) {
+                document.getElementById('info-panel-1').classList.add('comparison-mode');
+                document.getElementById('info-panel-2').style.display = 'flex';
+                openPanel(2);
+            } else {
+                document.getElementById('info-panel-1').classList.remove('comparison-mode');
+                closePanel(2);
+                document.getElementById('info-panel-2').style.display = 'none';
             }
         });
 
@@ -233,12 +306,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 minimizePanel(2);
             }
         });
+
+        // Country panel close button
+        document.getElementById('close-country-panel').addEventListener('click', () => {
+            document.getElementById('country-panel').classList.remove('open');
+        });
     }
 
     function togglePanel(panelNum) {
-        const panel = document.getElementById(`info-panel-${panelNum}`);
         const state = panelStates[`panel${panelNum}`];
-
         if (state.open) {
             minimizePanel(panelNum);
         } else {
@@ -267,33 +343,63 @@ document.addEventListener('DOMContentLoaded', () => {
         panelStates[`panel${panelNum}`].pinned = false;
         panelStates[`panel${panelNum}`].simulantId = null;
 
-        // Reset pin button
         document.getElementById(`pin-panel-${panelNum}`).classList.remove('active');
 
-        // Clear content
         document.querySelector(`#info-panel-${panelNum} .panel-title`).textContent =
-            panelNum === '1' ? 'Select a simulant' : 'Select a second simulant';
+            panelNum === '1' ? 'Select a simulant' : 'Select second simulant';
         document.getElementById(`references-panel-${panelNum}`).innerHTML =
             '<p class="placeholder-text">Select a simulant to view references</p>';
-    }
 
-    // Compare mode toggle
-    document.getElementById('compare-button').addEventListener('click', function () {
-        compareMode = !compareMode;
-        this.classList.toggle('active', compareMode);
-
-        if (compareMode) {
-            // Show both panels if there's data
-            if (panelStates.panel1.simulantId) {
-                openPanel(1);
-            }
-            document.getElementById('info-panel-2').style.display = 'flex';
-        } else {
-            // Hide second panel
+        // If closing panel 1 and compare mode is on, turn it off
+        if (panelNum === '1' && compareMode) {
+            compareMode = false;
+            document.getElementById('compare-btn-1').classList.remove('active');
+            document.getElementById('info-panel-1').classList.remove('comparison-mode');
             closePanel(2);
             document.getElementById('info-panel-2').style.display = 'none';
         }
-    });
+    }
+
+    // Update country panel
+    function updateCountryPanel() {
+        const countryFilter = Array.from(document.getElementById('country-filter').selectedOptions).map(o => o.value);
+        const panel = document.getElementById('country-panel');
+        const content = document.getElementById('country-panel-content');
+        const title = document.getElementById('country-panel-title');
+
+        if (countryFilter.length === 0) {
+            panel.classList.remove('open');
+            return;
+        }
+
+        if (countryFilter.length === 1) {
+            title.textContent = `Simulants in ${countryFilter[0]}`;
+        } else {
+            title.textContent = `Simulants in ${countryFilter.length} Countries`;
+        }
+
+        const filtered = simulants.filter(s => countryFilter.includes(s.country_code));
+
+        content.innerHTML = '';
+        if (filtered.length === 0) {
+            content.innerHTML = '<p class="placeholder-text">No simulants found</p>';
+        } else {
+            filtered.forEach(s => {
+                const item = document.createElement('div');
+                item.className = 'simulant-list-item';
+                item.innerHTML = `
+                    <div class="simulant-list-item-name">${s.name}</div>
+                    <div class="simulant-list-item-type">${s.type || 'N/A'}</div>
+                `;
+                item.addEventListener('click', () => {
+                    showInfo(s.simulant_id, compareMode && panelStates.panel1.simulantId ? 2 : 1, true, true);
+                });
+                content.appendChild(item);
+            });
+        }
+
+        panel.classList.add('open');
+    }
 
     // Update map
     function updateMap() {
@@ -303,6 +409,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const typeFilter = Array.from(document.getElementById('type-filter').selectedOptions).map(o => o.value);
         const countryFilter = Array.from(document.getElementById('country-filter').selectedOptions).map(o => o.value);
         const mineralFilter = Array.from(document.getElementById('mineral-filter').selectedOptions).map(o => o.value);
+        const chemicalFilter = Array.from(document.getElementById('chemical-filter').selectedOptions).map(o => o.value);
 
         let filtered = simulants.filter(s => {
             let keep = true;
@@ -311,6 +418,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (mineralFilter.length) {
                 let sMinerals = minerals.filter(m => m.simulant_id === s.simulant_id).map(m => m.component_name);
                 keep = keep && mineralFilter.some(m => sMinerals.includes(m));
+            }
+            if (chemicalFilter.length) {
+                let sChemicals = chemicals.filter(c => c.simulant_id === s.simulant_id).map(c => c.component_name);
+                keep = keep && chemicalFilter.some(c => sChemicals.includes(c));
             }
             return keep;
         });
@@ -335,15 +446,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 marker.bindTooltip(s.name, { permanent: false, direction: "top" });
 
                 marker.on('click', () => {
-                    if (compareMode) {
-                        // In compare mode, alternate between panels
-                        if (!panelStates.panel1.simulantId || (panelStates.panel1.simulantId && !panelStates.panel2.simulantId)) {
-                            const targetPanel = !panelStates.panel1.simulantId ? 1 : 2;
-                            showInfo(s.simulant_id, targetPanel, false, true);
-                        } else {
-                            // Both filled, replace panel 2
-                            showInfo(s.simulant_id, 2, false, true);
-                        }
+                    if (compareMode && panelStates.panel1.simulantId && !panelStates.panel2.simulantId) {
+                        showInfo(s.simulant_id, 2, false, true);
                     } else {
                         showInfo(s.simulant_id, 1, false, true);
                     }
@@ -397,10 +501,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         panelStates[`panel${panelNum}`].simulantId = simulant_id;
 
-        // Update panel title
         document.querySelector(`#info-panel-${panelNum} .panel-title`).textContent = s.name;
 
-        // Highlight country
         if (countryLayer) map.removeLayer(countryLayer);
         let featuresToHighlight = [];
 
@@ -429,7 +531,6 @@ document.addEventListener('DOMContentLoaded', () => {
             countryLayer.bringToFront();
         }
 
-        // Center on site
         const site = sites.find(site => site.simulant_id === simulant_id);
         if (site && site.lat && site.lon) {
             if (centerMap) {
@@ -440,12 +541,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Update charts
         updateMineralChart(simulant_id, panelNum);
         updateChemicalChart(simulant_id, panelNum);
         updateReferences(simulant_id, panelNum);
 
-        // Open panel
         openPanel(panelNum);
     }
 
@@ -581,15 +680,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Clear filters
+    // Clear filters and navigate home
     document.getElementById('clear-filters').addEventListener('click', () => {
         ['type-filter', 'country-filter', 'mineral-filter', 'chemical-filter'].forEach(id => {
             const select = document.getElementById(id);
-            if (select) select.selectedIndex = -1;
+            if (select) {
+                Array.from(select.options).forEach(opt => opt.selected = false);
+            }
         });
         document.getElementById('lrs-dropdown').selectedIndex = 0;
 
+        // Close country panel
+        document.getElementById('country-panel').classList.remove('open');
+
         updateMap();
+        updateSimulantCount();
         map.flyTo([46.6, 2.5], 3, { animate: true, duration: 1.5 });
         if (countryLayer) map.removeLayer(countryLayer);
     });

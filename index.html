@@ -6,9 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lunar Regolith Simulant Database</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <!-- Leaflet.markercluster CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
 </head>
@@ -23,14 +21,14 @@
 
         <div class="filters-section">
             <div class="filter-group">
-                <label>
+                <label title="Search for a specific simulant">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="11" cy="11" r="8"></circle>
                         <path d="m21 21-4.35-4.35"></path>
                     </svg>
                     Quick Select Simulant
                 </label>
-                <select id="lrs-dropdown" class="select-modern">
+                <select id="lrs-dropdown" class="select-modern" title="Select a simulant to view details">
                     <option value="">Search or select...</option>
                 </select>
             </div>
@@ -38,18 +36,27 @@
             <div class="filter-divider"></div>
 
             <div class="filter-group">
-                <label>
+                <label title="Filter by simulant type">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M3 3h18v18H3zM3 9h18M9 21V9"></path>
                     </svg>
                     Type
                 </label>
-                <select id="type-filter" multiple class="select-modern">
+                <div class="select-all-wrapper">
+                    <button class="select-all-btn" data-target="type-filter" title="Select all types">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        All
+                    </button>
+                </div>
+                <select id="type-filter" multiple class="select-modern" title="Click to toggle selection">
                 </select>
             </div>
 
             <div class="filter-group">
-                <label>
+                <label title="Filter by country of origin">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10"></circle>
                         <path d="M2 12h20"></path>
@@ -59,24 +66,42 @@
                     </svg>
                     Country
                 </label>
-                <select id="country-filter" multiple class="select-modern">
+                <div class="select-all-wrapper">
+                    <button class="select-all-btn" data-target="country-filter" title="Select all countries">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        All
+                    </button>
+                </div>
+                <select id="country-filter" multiple class="select-modern" title="Click to toggle selection">
                 </select>
             </div>
 
             <div class="filter-group">
-                <label>
+                <label title="Filter by mineral composition">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
                         <path d="M2 17l10 5 10-5M2 12l10 5 10-5"></path>
                     </svg>
                     Mineral
                 </label>
-                <select id="mineral-filter" multiple class="select-modern">
+                <div class="select-all-wrapper">
+                    <button class="select-all-btn" data-target="mineral-filter" title="Select all minerals">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        All
+                    </button>
+                </div>
+                <select id="mineral-filter" multiple class="select-modern" title="Click to toggle selection">
                 </select>
             </div>
 
             <div class="filter-group">
-                <label>
+                <label title="Filter by chemical composition">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="3"></circle>
                         <path d="M12 1v6m0 6v6"></path>
@@ -86,11 +111,20 @@
                     </svg>
                     Chemical
                 </label>
-                <select id="chemical-filter" multiple class="select-modern">
+                <div class="select-all-wrapper">
+                    <button class="select-all-btn" data-target="chemical-filter" title="Select all chemicals">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        All
+                    </button>
+                </div>
+                <select id="chemical-filter" multiple class="select-modern" title="Click to toggle selection">
                 </select>
             </div>
 
-            <button id="clear-filters" class="btn-primary">
+            <button id="clear-filters" class="btn-primary" title="Reset all filters and return to home view">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
                     </path>
@@ -101,41 +135,56 @@
 
         <div class="sidebar-footer">
             <p>Click on a marker to view details</p>
-            <p class="data-count">Loading data...</p>
+            <p class="data-count" id="simulant-count">Loading data...</p>
         </div>
     </div>
 
     <!-- Map Container -->
     <div id="map-container">
-        <button id="home-button" class="map-btn" title="Reset map view">
+        <button id="home-button" class="map-btn" title="Reset map view to default position">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                 <polyline points="9 22 9 12 15 12 15 22"></polyline>
             </svg>
         </button>
 
-        <button id="compare-button" class="map-btn compare-btn" title="Compare simulants" style="top: 60px;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="3" width="7" height="7"></rect>
-                <rect x="14" y="3" width="7" height="7"></rect>
-                <rect x="14" y="14" width="7" height="7"></rect>
-                <rect x="3" y="14" width="7" height="7"></rect>
-            </svg>
-        </button>
-
         <div id="map"></div>
     </div>
 
-    <!-- Info Panel (slides up from bottom) -->
+    <!-- Country List Panel -->
+    <div id="country-panel" class="country-panel">
+        <div class="country-panel-header">
+            <h3 id="country-panel-title">Simulants by Country</h3>
+            <button class="btn-icon" id="close-country-panel" title="Close country panel">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+        <div class="country-panel-content" id="country-panel-content">
+            <p class="placeholder-text">Select a country to view simulants</p>
+        </div>
+    </div>
+
+    <!-- Info Panel 1 -->
     <div id="info-panel-1" class="info-panel">
-        <div class="panel-handle" data-panel="1">
+        <div class="panel-handle" data-panel="1" title="Click to minimize/maximize panel">
             <div class="handle-bar"></div>
         </div>
 
         <div class="panel-header">
             <h3 class="panel-title">Select a simulant</h3>
             <div class="panel-actions">
-                <button class="btn-icon" id="pin-panel-1" title="Pin panel">
+                <button class="btn-icon compare-btn-panel" id="compare-btn-1" title="Compare with another simulant">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                </button>
+                <button class="btn-icon" id="pin-panel-1" title="Pin panel to keep it open">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M12 17v5m-3-2 3 3 3-3"></path>
                         <path d="M9 5v0a3 3 0 0 1 3-3v0a3 3 0 0 1 3 3v0M9 5h6m-6 0v7m6-7v7m-6 0h6"></path>
@@ -176,22 +225,22 @@
         </div>
     </div>
 
-    <!-- Second Info Panel (for comparison) -->
+    <!-- Info Panel 2 (for comparison) -->
     <div id="info-panel-2" class="info-panel comparison-panel">
-        <div class="panel-handle" data-panel="2">
+        <div class="panel-handle" data-panel="2" title="Click to minimize/maximize panel">
             <div class="handle-bar"></div>
         </div>
 
         <div class="panel-header">
-            <h3 class="panel-title">Select a second simulant</h3>
+            <h3 class="panel-title">Select second simulant</h3>
             <div class="panel-actions">
-                <button class="btn-icon" id="pin-panel-2" title="Pin panel">
+                <button class="btn-icon" id="pin-panel-2" title="Pin panel to keep it open">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M12 17v5m-3-2 3 3 3-3"></path>
                         <path d="M9 5v0a3 3 0 0 1 3-3v0a3 3 0 0 1 3 3v0M9 5h6m-6 0v7m6-7v7m-6 0h6"></path>
                     </svg>
                 </button>
-                <button class="btn-icon close-panel" data-panel="2" title="Close panel">
+                <button class="btn-icon close-panel" data-panel="2" title="Close this comparison panel">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -220,17 +269,14 @@
             <div class="info-card references-card">
                 <h4>References</h4>
                 <div id="references-panel-2" class="references-content">
-                    <p class="placeholder-text">Select a simulant to view references</p>
+                    <p class="placeholder-text">Select a simulant to compare</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <!-- Leaflet.markercluster JS -->
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
     <script src="app.js"></script>
 </body>
