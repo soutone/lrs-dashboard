@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,7 +11,6 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
 </head>
-
 <body>
     <!-- Filters Sidebar -->
     <div id="sidebar" class="sidebar">
@@ -20,7 +18,7 @@
             <h2>Lunar Regolith Simulants</h2>
             <p class="subtitle">Interactive Database</p>
         </div>
-
+        
         <div class="filters-section">
             <div class="filter-group">
                 <label>
@@ -34,9 +32,9 @@
                     <option value="">Search or select...</option>
                 </select>
             </div>
-
+            
             <div class="filter-divider"></div>
-
+            
             <div class="filter-group">
                 <label>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -47,22 +45,20 @@
                 <select id="type-filter" multiple class="select-modern">
                 </select>
             </div>
-
+            
             <div class="filter-group">
                 <label>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10"></circle>
                         <path d="M2 12h20"></path>
-                        <path
-                            d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
-                        </path>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
                     </svg>
                     Country
                 </label>
                 <select id="country-filter" multiple class="select-modern">
                 </select>
             </div>
-
+            
             <div class="filter-group">
                 <label>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -74,7 +70,7 @@
                 <select id="mineral-filter" multiple class="select-modern">
                 </select>
             </div>
-
+            
             <div class="filter-group">
                 <label>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -89,16 +85,15 @@
                 <select id="chemical-filter" multiple class="select-modern">
                 </select>
             </div>
-
+            
             <button id="clear-filters" class="btn-primary">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
-                    </path>
+                    <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                 </svg>
                 Clear All Filters
             </button>
         </div>
-
+        
         <div class="sidebar-footer">
             <p>Click on a marker to view details</p>
             <p class="data-count">Loading data...</p>
@@ -113,7 +108,7 @@
                 <polyline points="9 22 9 12 15 12 15 22"></polyline>
             </svg>
         </button>
-
+        
         <button id="compare-button" class="map-btn compare-btn" title="Compare simulants" style="top: 60px;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="3" y="3" width="7" height="7"></rect>
@@ -122,7 +117,7 @@
                 <rect x="3" y="14" width="7" height="7"></rect>
             </svg>
         </button>
-
+        
         <div id="map"></div>
     </div>
 
@@ -131,7 +126,7 @@
         <div class="panel-handle" data-panel="1">
             <div class="handle-bar"></div>
         </div>
-
+        
         <div class="panel-header">
             <h3 class="panel-title">Select a simulant</h3>
             <div class="panel-actions">
@@ -149,7 +144,7 @@
                 </button>
             </div>
         </div>
-
+        
         <div class="panel-content">
             <div class="info-grid">
                 <div class="info-card">
@@ -158,7 +153,7 @@
                         <canvas id="mineral-chart-1"></canvas>
                     </div>
                 </div>
-
+                
                 <div class="info-card">
                     <h4>Chemical Composition</h4>
                     <div class="chart-wrapper">
@@ -166,7 +161,7 @@
                     </div>
                 </div>
             </div>
-
+            
             <div class="info-card references-card">
                 <h4>References</h4>
                 <div id="references-panel-1" class="references-content">
@@ -181,7 +176,7 @@
         <div class="panel-handle" data-panel="2">
             <div class="handle-bar"></div>
         </div>
-
+        
         <div class="panel-header">
             <h3 class="panel-title">Select a second simulant</h3>
             <div class="panel-actions">
@@ -199,7 +194,7 @@
                 </button>
             </div>
         </div>
-
+        
         <div class="panel-content">
             <div class="info-grid">
                 <div class="info-card">
@@ -208,7 +203,7 @@
                         <canvas id="mineral-chart-2"></canvas>
                     </div>
                 </div>
-
+                
                 <div class="info-card">
                     <h4>Chemical Composition</h4>
                     <div class="chart-wrapper">
@@ -216,7 +211,7 @@
                     </div>
                 </div>
             </div>
-
+            
             <div class="info-card references-card">
                 <h4>References</h4>
                 <div id="references-panel-2" class="references-content">
@@ -234,5 +229,4 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
     <script src="app.js"></script>
 </body>
-
 </html>
