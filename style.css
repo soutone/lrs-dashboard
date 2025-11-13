@@ -86,31 +86,6 @@ body {
   opacity: 0.6;
 }
 
-.select-all-wrapper {
-  margin-bottom: 6px;
-}
-
-.select-all-btn {
-  padding: 4px 10px;
-  font-size: 11px;
-  background: var(--background);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-
-.select-all-btn:hover {
-  background: var(--primary);
-  color: white;
-  border-color: var(--primary);
-}
-
 .select-modern {
   width: 100%;
   padding: 10px 12px;
@@ -121,7 +96,6 @@ body {
   color: var(--text-primary);
   transition: all 0.2s;
   outline: none;
-  cursor: pointer;
 }
 
 .select-modern:focus {
@@ -132,15 +106,6 @@ body {
 .select-modern[multiple] {
   min-height: 100px;
   max-height: 150px;
-}
-
-.select-modern option {
-  padding: 8px;
-  cursor: pointer;
-}
-
-.select-modern option:hover {
-  background: var(--background);
 }
 
 .filter-divider {
@@ -228,84 +193,10 @@ body {
   box-shadow: var(--shadow-lg);
 }
 
-/* ===== COUNTRY PANEL ===== */
-.country-panel {
-  position: fixed;
-  right: 0;
-  top: 0;
-  width: 350px;
-  height: 100vh;
-  background: var(--surface);
-  box-shadow: -4px 0 6px -1px rgb(0 0 0 / 0.1);
-  transform: translateX(100%);
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 950;
-  display: flex;
-  flex-direction: column;
-}
-
-.country-panel.open {
-  transform: translateX(0);
-}
-
-.country-panel-header {
-  padding: 20px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
-.country-panel-header h3 {
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.country-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px;
-}
-
-.simulant-list-item {
-  padding: 16px;
-  background: var(--background);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  margin-bottom: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.simulant-list-item:hover {
-  border-color: var(--primary);
-  box-shadow: var(--shadow);
-  transform: translateX(-2px);
-}
-
-.simulant-list-item-name {
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 6px;
-  font-size: 15px;
-}
-
-.simulant-list-item-type {
-  font-size: 13px;
-  color: var(--text-secondary);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.simulant-list-item-type::before {
-  content: '';
-  width: 6px;
-  height: 6px;
+.compare-btn.active {
   background: var(--primary);
-  border-radius: 50%;
+  color: white;
+  border-color: var(--primary);
 }
 
 /* ===== INFO PANELS ===== */
@@ -335,13 +226,13 @@ body {
 }
 
 .info-panel.comparison-panel {
-  left: calc(var(--sidebar-width) + 50%);
-  border-top-left-radius: 0;
-  z-index: 899;
+  z-index: 850;
+  right: 50%;
+  border-top-right-radius: 0;
 }
 
-.info-panel.comparison-mode {
-  right: 50%;
+.info-panel.comparison-panel.open {
+  transform: translateY(0);
 }
 
 .panel-handle {
@@ -411,16 +302,6 @@ body {
   border-color: var(--primary);
 }
 
-.compare-btn-panel {
-  background: var(--background);
-}
-
-.compare-btn-panel.active {
-  background: var(--primary);
-  color: white;
-  border-color: var(--primary);
-}
-
 .panel-content {
   flex: 1;
   overflow-y: auto;
@@ -479,9 +360,7 @@ body {
 }
 
 .references-content div:last-child {
-  border-bottom: none;
   margin-bottom: 0;
-  padding-bottom: 0;
 }
 
 .placeholder-text {
@@ -529,6 +408,37 @@ body {
   background: var(--secondary);
 }
 
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  :root {
+    --sidebar-width: 100%;
+  }
+
+  .sidebar {
+    transform: translateX(-100%);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  #map-container {
+    left: 0;
+  }
+
+  .info-panel {
+    left: 0;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .comparison-panel {
+    display: none;
+  }
+}
+
 /* Loading state */
 .loading-overlay {
   position: fixed;
@@ -561,40 +471,5 @@ body {
 @keyframes spin {
   to {
     transform: rotate(360deg);
-  }
-}
-
-/* ===== RESPONSIVE ===== */
-@media (max-width: 768px) {
-  :root {
-    --sidebar-width: 100%;
-  }
-
-  .sidebar {
-    transform: translateX(-100%);
-  }
-
-  .sidebar.open {
-    transform: translateX(0);
-  }
-
-  #map-container {
-    left: 0;
-  }
-
-  .info-panel {
-    left: 0;
-  }
-
-  .info-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .comparison-panel {
-    display: none;
-  }
-
-  .country-panel {
-    width: 100%;
   }
 }
