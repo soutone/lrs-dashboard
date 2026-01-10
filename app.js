@@ -280,12 +280,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (compareMode) {
                 document.getElementById('info-panel-1').classList.add('comparison-mode');
-                document.getElementById('info-panel-2').style.display = 'flex';
                 openPanel(2);
             } else {
                 document.getElementById('info-panel-1').classList.remove('comparison-mode');
                 closePanel(2);
-                document.getElementById('info-panel-2').style.display = 'none';
             }
         });
 
@@ -359,7 +357,6 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('compare-btn-1').classList.remove('active');
             document.getElementById('info-panel-1').classList.remove('comparison-mode');
             closePanel(2);
-            document.getElementById('info-panel-2').style.display = 'none';
         }
     }
 
