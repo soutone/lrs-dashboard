@@ -464,6 +464,13 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(`Map updated: ${filtered.length} simulants`);
     }
 
+    // Helper to get country code from GeoJSON feature (some countries like France have iso_a3: -99)
+    function getCountryCode(props) {
+        const iso = props.iso_a3 || props.ISO_A3;
+        if (iso && iso !== -99 && iso !== '-99') return iso;
+        return props.adm0_a3 || props.ADM0_A3;
+    }
+
     // Highlight country
     function highlightCountry(countryCode) {
         if (!countryGeoJson || !countryCode) return;
@@ -473,12 +480,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (countryCode === "EU") {
             featuresToHighlight = countryGeoJson.features.filter(f =>
-                euCountries.includes(f.properties.iso_a3 || f.properties.ISO_A3)
+                euCountries.includes(getCountryCode(f.properties))
             );
         } else {
             const code = countryMap[countryCode] || countryCode;
             const feat = countryGeoJson.features.find(f =>
-                (f.properties.iso_a3 || f.properties.ISO_A3) === code ||
+                getCountryCode(f.properties) === code ||
                 (f.properties.iso_a2 || f.properties.ISO_A2) === code
             );
             if (feat) featuresToHighlight.push(feat);
@@ -511,12 +518,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (s.country_code === "EU") {
             featuresToHighlight = countryGeoJson.features.filter(f =>
-                euCountries.includes(f.properties.iso_a3 || f.properties.ISO_A3)
+                euCountries.includes(getCountryCode(f.properties))
             );
         } else {
             const code = countryMap[s.country_code] || s.country_code;
             const feat = countryGeoJson.features.find(f =>
-                (f.properties.iso_a3 || f.properties.ISO_A3) === code ||
+                getCountryCode(f.properties) === code ||
                 (f.properties.iso_a2 || f.properties.ISO_A2) === code
             );
             if (feat) featuresToHighlight.push(feat);
