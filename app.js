@@ -5,9 +5,9 @@ document.addEventListener('DOMContentLoaded', () => {
         attributionControl: true
     }).setView([46.6, 2.5], 3);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
         maxZoom: 19,
-        attribution: '© OpenStreetMap contributors'
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>'
     }).addTo(map);
 
     // Custom moon icon
@@ -444,7 +444,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (lat === 0 && lon === 0) return;
 
                 let marker = L.marker([lat, lon], { icon: moonIcon });
-                let popupContent = `<b>${s.name}</b><br>Type: ${s.type}<br>Country: ${s.country_code}`;
+                let popupContent = `<b>${s.name}</b><br>Type: ${s.type || 'N/A'}<br>Country: ${s.country_code || 'N/A'}`;
                 marker.bindPopup(popupContent);
                 marker.bindTooltip(s.name, { permanent: false, direction: "top" });
 
@@ -566,7 +566,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateMineralChart(simulant_id, panelNum) {
         const chartKey = `mineral${panelNum}`;
-        const ctx = document.getElementById(`mineral-chart-${panelNum}`).getContext('2d');
+        const canvas = document.getElementById(`mineral-chart-${panelNum}`);
+        const ctx = canvas.getContext('2d');
 
         if (charts[chartKey]) charts[chartKey].destroy();
 
@@ -574,6 +575,11 @@ document.addEventListener('DOMContentLoaded', () => {
             .sort((a, b) => b.value_pct - a.value_pct);
 
         if (minSubset.length > 0) {
+            canvas.style.display = 'block';
+            const wrapper = canvas.parentElement;
+            const noDataMsg = wrapper.querySelector('.no-data-message');
+            if (noDataMsg) noDataMsg.remove();
+
             charts[chartKey] = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -610,12 +616,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             });
+        } else {
+            canvas.style.display = 'none';
+            const wrapper = canvas.parentElement;
+            if (!wrapper.querySelector('.no-data-message')) {
+                const msg = document.createElement('p');
+                msg.className = 'no-data-message placeholder-text';
+                msg.textContent = 'Data not available. See references for more information.';
+                wrapper.appendChild(msg);
+            }
         }
     }
 
     function updateChemicalChart(simulant_id, panelNum) {
         const chartKey = `chemical${panelNum}`;
-        const ctx = document.getElementById(`chemical-chart-${panelNum}`).getContext('2d');
+        const canvas = document.getElementById(`chemical-chart-${panelNum}`);
+        const ctx = canvas.getContext('2d');
 
         if (charts[chartKey]) charts[chartKey].destroy();
 
@@ -626,22 +642,19 @@ document.addEventListener('DOMContentLoaded', () => {
         );
 
         if (chemSubset.length === 0) {
-            charts[chartKey] = new Chart(ctx, {
-                type: 'pie',
-                data: {
-                    labels: ['No Data'],
-                    datasets: [{
-                        data: [1],
-                        backgroundColor: ['#e2e8f0']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } }
-                }
-            });
+            canvas.style.display = 'none';
+            const wrapper = canvas.parentElement;
+            if (!wrapper.querySelector('.no-data-message')) {
+                const msg = document.createElement('p');
+                msg.className = 'no-data-message placeholder-text';
+                msg.textContent = 'Data not available. See references for more information.';
+                wrapper.appendChild(msg);
+            }
         } else {
+            canvas.style.display = 'block';
+            const wrapper = canvas.parentElement;
+            const noDataMsg = wrapper.querySelector('.no-data-message');
+            if (noDataMsg) noDataMsg.remove();
             charts[chartKey] = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
