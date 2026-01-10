@@ -812,4 +812,46 @@ document.addEventListener('DOMContentLoaded', () => {
         map.flyTo([46.6, 2.5], 3, { animate: true, duration: 1.5 });
         if (countryLayer) map.removeLayer(countryLayer);
     });
+
+    // Mobile sidebar toggle
+    const menuToggle = document.getElementById('menu-toggle');
+    const sidebar = document.getElementById('sidebar');
+    const mobileOverlay = document.getElementById('mobile-overlay');
+
+    function openMobileSidebar() {
+        sidebar.classList.add('open');
+        mobileOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeMobileSidebar() {
+        sidebar.classList.remove('open');
+        mobileOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    menuToggle.addEventListener('click', () => {
+        if (sidebar.classList.contains('open')) {
+            closeMobileSidebar();
+        } else {
+            openMobileSidebar();
+        }
+    });
+
+    mobileOverlay.addEventListener('click', closeMobileSidebar);
+
+    // Close sidebar when selecting a simulant on mobile
+    const originalLrsDropdownChange = lrsDropdown.onchange;
+    lrsDropdown.addEventListener('change', () => {
+        if (window.innerWidth <= 768 && lrsDropdown.value) {
+            closeMobileSidebar();
+        }
+    });
+
+    // Handle window resize - close mobile sidebar if resizing to desktop
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) {
+            closeMobileSidebar();
+        }
+    });
 });
