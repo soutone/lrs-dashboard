@@ -88,11 +88,14 @@ body {
 
 .select-all-wrapper {
   margin-bottom: 6px;
+  display: flex;
+  gap: 6px;
 }
 
-.select-all-btn {
-  padding: 4px 10px;
-  font-size: 11px;
+.select-all-btn,
+.deselect-all-btn {
+  padding: 4px 8px;
+  font-size: 10px;
   background: var(--background);
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -100,15 +103,23 @@ body {
   transition: all 0.2s;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   color: var(--text-secondary);
   font-weight: 500;
+  flex: 1;
+  justify-content: center;
 }
 
 .select-all-btn:hover {
   background: var(--primary);
   color: white;
   border-color: var(--primary);
+}
+
+.deselect-all-btn:hover {
+  background: #6b7280;
+  color: white;
+  border-color: #6b7280;
 }
 
 .select-modern {

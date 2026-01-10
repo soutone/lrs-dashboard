@@ -211,11 +211,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Select All buttons
-        document.querySelectorAll('.select-all-btn').forEach(btn => {
+        // Select All / Deselect All buttons
+        document.querySelectorAll('.select-all-btn, .deselect-all-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const targetId = btn.dataset.target;
+                const action = btn.dataset.action;
                 const select = document.getElementById(targetId);
-                Array.from(select.options).forEach(opt => opt.selected = true);
+                const shouldSelect = action === 'select';
+                Array.from(select.options).forEach(opt => opt.selected = shouldSelect);
                 updateMap();
                 updateSimulantCount();
                 if (targetId === 'country-filter') {
