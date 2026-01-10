@@ -573,6 +573,18 @@ body {
   padding-bottom: 0;
 }
 
+.references-content a {
+  color: var(--primary);
+  text-decoration: none;
+  word-break: break-all;
+  transition: color 0.2s ease;
+}
+
+.references-content a:hover {
+  color: var(--primary-light);
+  text-decoration: underline;
+}
+
 .placeholder-text {
   color: var(--text-secondary);
   font-style: italic;

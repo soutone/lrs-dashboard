@@ -54,7 +54,15 @@ document.addEventListener('DOMContentLoaded', () => {
         "Germany": "DEU", "Italy": "ITA", "China": "CHN",
         "Australia": "AUS", "Norway": "NOR", "Canada": "CAN",
         "Japan": "JPN", "South Korea": "KOR", "India": "IND",
-        "Turkey": "TUR", "Thailand": "THA"
+        "Turkey": "TUR", "Thailand": "THA", "Ital": "ITA", "Spain": "ESP"
+    };
+
+    // Display names for country codes in filters
+    const countryDisplayNames = {
+        "USA": "United States",
+        "UK": "United Kingdom",
+        "EU": "European Union",
+        "Ital": "Italy"
     };
 
     // Loading overlay
@@ -166,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
         [...new Set(simulants.map(s => s.country_code).filter(Boolean))].sort().forEach(c => {
             const opt = document.createElement('option');
             opt.value = c;
-            opt.text = c;
+            opt.text = countryDisplayNames[c] || c;
             countryFilter.appendChild(opt);
         });
 
@@ -373,7 +381,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (countryFilter.length === 1) {
-            title.textContent = `Simulants in ${countryFilter[0]}`;
+            title.textContent = `Simulants in ${countryDisplayNames[countryFilter[0]] || countryFilter[0]}`;
         } else {
             title.textContent = `Simulants in ${countryFilter.length} Countries`;
         }
@@ -441,7 +449,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (lat === 0 && lon === 0) return;
 
                 let marker = L.marker([lat, lon], { icon: moonIcon });
-                let popupContent = `<b>${s.name}</b><br>Type: ${s.type || 'N/A'}<br>Country: ${s.country_code || 'N/A'}`;
+                const countryName = s.country_code ? (countryDisplayNames[s.country_code] || s.country_code) : 'N/A';
+                let popupContent = `<b>${s.name}</b><br>Type: ${s.type || 'N/A'}<br>Country: ${countryName}`;
                 marker.bindPopup(popupContent);
                 marker.bindTooltip(s.name, { permanent: false, direction: "top" });
 
@@ -700,7 +709,34 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             refSubset.forEach(r => {
                 const div = document.createElement('div');
-                div.textContent = r.reference_text;
+                div.className = 'reference-item';
+
+                // Safely linkify URLs using DOM methods (no innerHTML with user content)
+                const urlRegex = /(https?:\/\/[^\s<>"{}|\\^`[\]]+)/g;
+                const text = r.reference_text || '';
+                let lastIndex = 0;
+                let match;
+
+                while ((match = urlRegex.exec(text)) !== null) {
+                    // Add text before the URL
+                    if (match.index > lastIndex) {
+                        div.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
+                    }
+                    // Create anchor for the URL
+                    const anchor = document.createElement('a');
+                    anchor.href = match[1];
+                    anchor.target = '_blank';
+                    anchor.rel = 'noopener noreferrer';
+                    anchor.textContent = match[1];
+                    div.appendChild(anchor);
+                    lastIndex = urlRegex.lastIndex;
+                }
+
+                // Add remaining text after last URL
+                if (lastIndex < text.length) {
+                    div.appendChild(document.createTextNode(text.slice(lastIndex)));
+                }
+
                 refPanel.appendChild(div);
             });
         }
@@ -718,6 +754,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Close country panel
         document.getElementById('country-panel').classList.remove('open');
+
+        // Close info panels
+        closePanel('1');
+        closePanel('2');
 
         updateMap();
         updateSimulantCount();
