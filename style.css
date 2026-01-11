@@ -597,4 +597,18 @@ body {
   .country-panel {
     width: 100%;
   }
+
+  /* Move Leaflet zoom controls to bottom-right on mobile to avoid overlap with sidebar toggle */
+  .leaflet-top.leaflet-left {
+    top: auto !important;
+    bottom: 100px !important;
+    left: auto !important;
+    right: 10px !important;
+  }
+
+  /* Adjust home button position on mobile */
+  .map-btn {
+    bottom: 180px;
+    top: auto;
+  }
 }
